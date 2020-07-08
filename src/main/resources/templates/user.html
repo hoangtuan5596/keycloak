@@ -1,11 +1,12 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head th:include="layout :: headerFragment">
 </head>
 <body>
 <div id="container">
     <h1>
-        Hello, <span th:text="${user.userName}">--name--</span>.
+        Hello, <span th:action="@{/users}"  th:text="${usersName}">--name--</span>.
     </h1>
     <table class="table table-striped">
         <thead>
@@ -17,7 +18,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="user : ${user}">
+        <tr th:action="@{/users}"  th:each="user: ${users}">
             <td th:text="${user.id}">Text ...</td>
             <td th:text="${user.userName}">Text ...</td>
         </tr>
