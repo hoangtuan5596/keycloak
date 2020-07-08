@@ -42,20 +42,13 @@ class SecurityConfig extends KeycloakWebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
+        http.httpBasic().disable();
+        super.configure(http);
         http.csrf().disable();
-
-        // Not authentication
-        http.authorizeRequests().antMatchers("/", "/login", "/logout").permitAll();
-
-        // Config for Login Form.
-        http.authorizeRequests().and().formLogin()//
-                .loginProcessingUrl("/j_spring_security_check") // Submit URL
-                .loginPage("/login")//
-                .failureUrl("/login?error=true")//
-                .usernameParameter("username")//
-                .passwordParameter("password")
-                // Config Logout Page.
-                .and().logout().logoutUrl("/logout").logoutSuccessUrl("/logout");
-
+        http.authorizeRequests()
+                .antMatchers("/users*")
+                .hasRole("user")
+                .anyRequest()
+                .permitAll();
     }
 }
