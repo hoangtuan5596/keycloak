@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
 
@@ -18,22 +19,21 @@ public class SpringController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping(path = "/")
+    @GetMapping("/")
     public String index() {
         return "index";
     }
 
     /*
-    * Get list details user before login success.
-    */
-    @GetMapping(path = "/users")
+     * Get list details user before login success.
+     */
+    @RequestMapping("/users")
     public String user(Principal principal, Model model) {
-        logger.info("USER");
-        Iterable<User> users = userRepository.detailsUser();
+
+        Iterable<User> users = userRepository.findUserByUsername(principal.getName());
         model.addAttribute("users", users);
-        model.addAttribute("usersName", principal.getName());
-        logger.info("USER" + users);
-        return "user";
+        model.addAttribute("userLogin", principal.getName());
+        return "users";
     }
 
 }

@@ -6,7 +6,7 @@
 <body>
 <div id="container">
     <h1>
-        Hello, <span th:action="@{/users}"  th:text="${usersName}">--name--</span>.
+        Hello, <span th:action="@{/users}"  th:text="${userLogin}">--name--</span>.
     </h1>
     <table class="table table-striped">
         <thead>
@@ -20,7 +20,7 @@
         <tbody>
         <tr th:action="@{/users}"  th:each="user: ${users}">
             <td th:text="${user.id}">Text ...</td>
-            <td th:text="${user.userName}">Text ...</td>
+            <td th:text="${user.username}">Text ...</td>
         </tr>
         </tbody>
     </table>
