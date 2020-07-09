@@ -2,16 +2,16 @@ package com.moso.springkeycloak.controller;
 
 import com.moso.springkeycloak.model.Users;
 import com.moso.springkeycloak.repository.UserRepository;
+import com.moso.springkeycloak.service.KeyCloakService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.security.Principal;
@@ -22,9 +22,46 @@ public class SpringController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private KeyCloakService keyCloakService;
+
     @GetMapping("/")
     public String index() {
         return "index";
+    }
+
+    private String responseToken;
+
+    @RequestMapping(value = "/token", method = RequestMethod.POST)
+    public ResponseEntity<?> getTokenUsingCredentials(@RequestBody Users userCredentials) {
+        try {
+            responseToken = keyCloakService.getToken(userCredentials);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(responseToken, HttpStatus.OK);
+
+    }
+
+    /*
+     * When access token get expired than send refresh token to get new access
+     * token. We will receive new refresh token also in this response.Update
+     * client cookie with updated refresh and access token
+     */
+    @RequestMapping(value = "/refreshtoken", method = RequestMethod.GET)
+    public ResponseEntity<?> getTokenUsingRefreshToken(@RequestHeader(value = "Authorization") String refreshToken) {
+        try {
+            responseToken = keyCloakService.getByRefreshToken(refreshToken);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(responseToken, HttpStatus.OK);
+    }
+
+    @ModelAttribute("users")
+    public Users users() {
+        return new Users();
     }
 
     /***
@@ -34,6 +71,8 @@ public class SpringController {
     public String user(Principal principal, Model model) {
 
         Iterable<Users> users = userRepository.findUserByUsername(principal.getName());
+        Iterable<Users> listUsers = userRepository.findAll();
+        model.addAttribute("listUsers", listUsers);
         model.addAttribute("users", users);
         model.addAttribute("userLogin", principal.getName());
         return "users";
@@ -49,14 +88,40 @@ public class SpringController {
 
     @RequestMapping(value = "/registration", method = RequestMethod.POST)
     public String registerAccount(@ModelAttribute("users") @Valid Users users, BindingResult result) {
-        Users checkExists = userRepository.findByUsername((users.getUsername()));
-        if (checkExists != null) {
-            result.rejectValue("username", "This is already an account registered with that username ");
+
+        try {
+            Users checkExists = userRepository.findByUsername((users.getUsername()));
+            if (checkExists != null) {
+                result.rejectValue("username", "This is already an account registered with that username ");
+            }
+            if (result.hasErrors()) {
+                return "register";
+            }
+            userRepository.save(users);
+            createUser(users);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if (result.hasErrors()) {
-            return "register";
+        return "redirect:users";
+    }
+
+
+    /***
+     * Create User keycloak
+     */
+    public ResponseEntity<?> createUser(@RequestBody Users users) {
+        try {
+
+            keyCloakService.createUserInKeyCloak(users);
+            return new ResponseEntity<>(HttpStatus.OK);
         }
-        userRepository.save(users);
-        return "redirect://register";
+
+        catch (Exception ex) {
+
+            ex.printStackTrace();
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+
+        }
+
     }
 }

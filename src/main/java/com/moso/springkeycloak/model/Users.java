@@ -1,18 +1,16 @@
 package com.moso.springkeycloak.model;
 
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @Data
-@Getter
-@Setter
 public class Users {
     @Id
+    @SequenceGenerator(name = "seq-gen", sequenceName = "MY_SEQ_GEN", initialValue = 205, allocationSize = 12)
+    @GeneratedValue
+    @Column(name = "ID", unique = true, nullable = false)
     private int id;
     private String username;
     private String password;
