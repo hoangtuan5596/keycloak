@@ -3,8 +3,6 @@ package com.moso.springkeycloak.controller;
 import com.moso.springkeycloak.model.Users;
 import com.moso.springkeycloak.repository.UserRepository;
 import com.moso.springkeycloak.service.KeyCloakService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +67,6 @@ public class SpringController {
      */
     @RequestMapping("/users")
     public String user(Principal principal, Model model) {
-
         Iterable<Users> users = userRepository.findUserByUsername(principal.getName());
         Iterable<Users> listUsers = userRepository.findAll();
         model.addAttribute("listUsers", listUsers);
